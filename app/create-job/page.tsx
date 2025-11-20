@@ -1,11 +1,11 @@
-"use client" // يجب تحويلها لـ Client Component للتعامل مع رفع الملفات وتفاعل الواجهة
+"use client"
 
 import { createJob } from '@/app/actions'
 import { useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 import Link from 'next/link'
 
-export default function CreateJobPage() {
+function CreateJobContent() {
   const searchParams = useSearchParams()
   const categoryId = searchParams.get('categoryId')
   const categoryName = searchParams.get('categoryName')
@@ -83,5 +83,13 @@ export default function CreateJobPage() {
         </form>
       </div>
     </div>
+  )
+}
+
+export default function CreateJobPage() {
+  return (
+    <Suspense fallback={<div className="flex justify-center items-center min-h-screen p-10"><div className="text-xl text-gray-600">جاري التحميل...</div></div>}>
+      <CreateJobContent />
+    </Suspense>
   )
 }
