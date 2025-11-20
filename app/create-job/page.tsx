@@ -82,7 +82,7 @@ function CreateJobContent() {
 
 export default function CreateJobPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-center">جاري تحميل النموذج...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-gray-50 flex items-center justify-center p-8"><div className="text-center text-gray-600">جاري تحميل النموذج...</div></div>}>
       <CreateJobContent />
     </Suspense>
   )

@@ -1,44 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { signupTechnician } from '@/app/actions'
 import { useSearchParams } from 'next/navigation'
 
 interface Category {
   id: number
   name: string
-}
-
-export default function SignupTechnicianPage() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch('/api/categories')
-        const data = await response.json()
-        setCategories(data || [])
-      } catch (err) {
-        console.error('Failed to fetch categories:', err)
-      } finally {
-        setIsLoadingCategories(false)
-      }
-    }
-    fetchCategories()
-  }, [])
-
-  if (isLoadingCategories) {
-    return (
-      <main className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-600">جاري التحميل...</p>
-        </div>
-      </main>
-    )
-  }
-
-  return <SignupTechnicianForm categories={categories} />
 }
 
 function SignupTechnicianForm({ categories }: { categories: Category[] }) {
@@ -208,4 +176,50 @@ function SignupTechnicianForm({ categories }: { categories: Category[] }) {
       </div>
     </main>
   )
+}
+
+function SignupTechnicianFormWrapper({ categories }: { categories: Category[] }) {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">جاري التحميل...</p>
+        </div>
+      </main>
+    }>
+      <SignupTechnicianForm categories={categories} />
+    </Suspense>
+  )
+}
+
+export default function SignupTechnicianPage() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true)
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await fetch('/api/categories')
+        const data = await response.json()
+        setCategories(data || [])
+      } catch (err) {
+        console.error('Failed to fetch categories:', err)
+      } finally {
+        setIsLoadingCategories(false)
+      }
+    }
+    fetchCategories()
+  }, [])
+
+  if (isLoadingCategories) {
+    return (
+      <main className="min-h-screen bg-gray-50 p-4 sm:p-8 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">جاري التحميل...</p>
+        </div>
+      </main>
+    )
+  }
+
+  return <SignupTechnicianFormWrapper categories={categories} />
 }

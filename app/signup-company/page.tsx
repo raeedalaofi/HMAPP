@@ -4,6 +4,7 @@ import { signupCompanyInitial } from '@/app/actions'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
+import { Suspense } from 'react'
 
 function SubmitButton() {
   const { pending } = useFormStatus()
@@ -19,7 +20,7 @@ function SubmitButton() {
   )
 }
 
-export default function SignupCompanyPage() {
+function SignupCompanyContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -90,5 +91,17 @@ export default function SignupCompanyPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function SignupCompanyPage() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+        <div className="text-center text-gray-600">جاري التحميل...</div>
+      </main>
+    }>
+      <SignupCompanyContent />
+    </Suspense>
   )
 }
