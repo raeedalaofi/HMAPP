@@ -5,7 +5,7 @@
 
 -- Function 1: Cancel Job and Refund Customer
 -- =====================================================
-DROP FUNCTION IF EXISTS cancel_job_and_refund(UUID, UUID);
+DROP FUNCTION IF EXISTS cancel_job_and_refund CASCADE;
 
 CREATE OR REPLACE FUNCTION cancel_job_and_refund(
   p_job_id UUID,
@@ -107,7 +107,7 @@ $$;
 
 -- Function 2: Accept Price Offer
 -- =====================================================
-DROP FUNCTION IF EXISTS accept_price_offer(UUID, UUID);
+DROP FUNCTION IF EXISTS accept_price_offer CASCADE;
 
 CREATE OR REPLACE FUNCTION accept_price_offer(
   p_offer_id UUID,
@@ -241,7 +241,7 @@ $$;
 
 -- Function 3: Complete Job and Transfer Payment
 -- =====================================================
-DROP FUNCTION IF EXISTS complete_job_and_transfer(UUID, UUID);
+DROP FUNCTION IF EXISTS complete_job_and_transfer CASCADE;
 
 CREATE OR REPLACE FUNCTION complete_job_and_transfer(
   p_job_id UUID,
