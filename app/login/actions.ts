@@ -143,7 +143,8 @@ export async function signupCustomer(formData: FormData) {
       const ownerId = created?.id
       if (ownerId) {
         const { error: walletError } = await supabase.from('wallets').insert({
-          customer_id: ownerId,
+          owner_type: 'customer',
+          owner_id: ownerId,
           balance: 0,
           currency: 'SAR'
         })
