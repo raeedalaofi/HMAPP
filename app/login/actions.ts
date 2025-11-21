@@ -11,30 +11,50 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
+  if (!email || !password) {
+    return redirect('/login?error=' + encodeURIComponent('يرجى إدخال البريد الإلكتروني وكلمة المرور'))
+  }
+
   console.log('🔐 Login attempt for:', email)
 
   // محاولة تسجيل الدخول
   const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
+    email: email.trim(),
+    password: password.trim(),
   })
 
   if (error) {
-    console.error('❌ Login Error:', error)
+    console.error('❌ Login Error:', {
+      message: error.message,
+      status: error.status,
+      name: error.name
+    })
+    
     // عرض رسالة خطأ أكثر تفصيلاً
-    const errorMessage = error.message === 'Invalid login credentials' 
-      ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
-      : error.message === 'Email not confirmed'
-      ? 'يرجى تأكيد بريدك الإلكتروني أولاً'
-      : error.message.includes('Email')
-      ? 'خطأ في البريد الإلكتروني: ' + error.message
-      : 'فشل تسجيل الدخول: ' + error.message
+    let errorMessage = 'فشل تسجيل الدخول'
+    
+    if (error.message === 'Invalid login credentials') {
+      errorMessage = 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+    } else if (error.message === 'Email not confirmed' || error.message.includes('email_not_confirmed')) {
+      errorMessage = '⚠️ يجب تأكيد بريدك الإلكتروني أولاً. تحقق من بريدك الإلكتروني أو تواصل مع الإدارة'
+    } else if (error.message.includes('Email')) {
+      errorMessage = 'خطأ في البريد الإلكتروني: ' + error.message
+    } else if (error.status === 400) {
+      errorMessage = 'البيانات المدخلة غير صحيحة'
+    } else {
+      errorMessage = error.message
+    }
     
     return redirect(`/login?error=${encodeURIComponent(errorMessage)}`)
   }
 
+  if (!data.session) {
+    console.error('❌ No session created after login')
+    return redirect('/login?error=' + encodeURIComponent('فشل إنشاء الجلسة، حاول مرة أخرى'))
+  }
+
   console.log('✅ Login successful for:', data.user?.email)
-  console.log('🔑 Session:', data.session?.access_token ? 'Created' : 'Missing')
+  console.log('🔑 Session created:', !!data.session.access_token)
 
   // في حال النجاح، تحديث الكاش والتوجيه للرئيسية
   revalidatePath('/', 'layout')
@@ -74,10 +94,18 @@ export async function signupCustomer(formData: FormData) {
     return redirect('/signup?error=' + encodeURIComponent('جميع الحقول مطلوبة'))
   }
 
-  // 1. إنشاء مستخدم Auth
+  // 1. إنشاء مستخدم Auth with email confirmation
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
+    email: email.trim(),
+    password: password.trim(),
+    options: {
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      data: {
+        full_name: fullName,
+        phone: phone,
+        role: 'customer'
+      }
+    }
   })
 
   if (authError) {
