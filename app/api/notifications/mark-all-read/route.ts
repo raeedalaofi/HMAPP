@@ -1,0 +1,26 @@
+import { createClient } from '@/utils/supabase/server'
+import { NextResponse } from 'next/server'
+
+export async function POST() {
+  const supabase = await createClient()
+
+  // Check authentication
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  // Mark all user notifications as read
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('user_id', user.id)
+    .eq('is_read', false)
+
+  if (error) {
+    console.error('Error marking notifications as read:', error)
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  return NextResponse.redirect(new URL('/notifications', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'))
+}
