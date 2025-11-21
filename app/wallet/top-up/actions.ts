@@ -34,42 +34,67 @@ export async function topUpWallet(formData: FormData) {
     // For now, we'll simulate the payment and add to wallet directly
     // TODO: Integrate with Stripe/PayPal/Moyasar/Hyperpay
     
-    // Get or create wallet
+    // Get or create wallet using owner_type/owner_id schema
     const { data: existingWallet } = await supabase
       .from('wallets')
-      .select('balance')
-      .eq('customer_id', customer.id)
+      .select('id, balance, hold_balance')
+      .eq('owner_type', 'customer')
+      .eq('owner_id', customer.id)
+      .eq('is_deleted', false)
       .maybeSingle()
+
+    let walletId: string;
+    let newBalance: number;
 
     if (!existingWallet) {
       // Create new wallet
-      await supabase
+      const { data: newWallet, error: insertError } = await supabase
         .from('wallets')
         .insert({
-          customer_id: customer.id,
+          owner_type: 'customer',
+          owner_id: customer.id,
           balance: amount,
-          currency: 'SAR'
+          hold_balance: 0,
+          currency: 'SAR',
+          created_by: user.id
         })
+        .select('id, balance')
+        .single()
+
+      if (insertError) throw insertError
+      walletId = newWallet.id
+      newBalance = newWallet.balance
     } else {
       // Update existing wallet
-      await supabase
+      newBalance = existingWallet.balance + amount
+      
+      const { error: updateError } = await supabase
         .from('wallets')
         .update({
-          balance: existingWallet.balance + amount,
+          balance: newBalance,
           updated_at: new Date().toISOString()
         })
-        .eq('customer_id', customer.id)
+        .eq('id', existingWallet.id)
+
+      if (updateError) throw updateError
+      walletId = existingWallet.id
     }
 
-    // Get new balance
-    const { data: updatedWallet } = await supabase
-      .from('wallets')
-      .select('balance')
-      .eq('customer_id', customer.id)
-      .single()
+    // Record transaction
+    await supabase
+      .from('wallet_transactions')
+      .insert({
+        wallet_id: walletId,
+        direction: 'credit',
+        amount: amount,
+        balance_after: newBalance,
+        tx_type: 'top_up',
+        metadata: { method: 'manual', note: 'Wallet top-up' },
+        created_by: user.id
+      })
 
     // Redirect with success message
-    redirect(`/wallet/top-up?success=${updatedWallet?.balance.toFixed(2)}`)
+    redirect(`/wallet/top-up?success=${newBalance.toFixed(2)}`)
 
   } catch (error) {
     console.error('Top-up error:', error)

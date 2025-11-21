@@ -20,12 +20,15 @@ export default async function TechnicianDashboardPage() {
 
   // Get wallet balance
   const { data: wallet } = await supabase
-    .from('technician_wallets')
-    .select('balance, currency')
-    .eq('technician_id', technician.id)
+    .from('wallets')
+    .select('id, balance, hold_balance, currency')
+    .eq('owner_type', 'technician')
+    .eq('owner_id', technician.id)
+    .eq('is_deleted', false)
     .maybeSingle()
 
   const balance = wallet?.balance || 0
+  const holdBalance = wallet?.hold_balance || 0
 
   // Get my offers (with job details)
   const { data: myOffers } = await supabase
@@ -60,7 +63,7 @@ export default async function TechnicianDashboardPage() {
       customers (full_name),
       customer_addresses (label, address_text)
     `)
-    .eq('assigned_technician_id', technician.id)
+    .eq('technician_id', technician.id)
     .in('status', ['assigned', 'completed'])
     .order('requested_time', { ascending: false })
     .limit(10)

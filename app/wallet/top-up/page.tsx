@@ -27,11 +27,15 @@ export default async function TopUpWalletPage({
 
   const { data: wallet } = await supabase
     .from('wallets')
-    .select('balance, currency')
-    .eq('customer_id', customer.id)
+    .select('balance, hold_balance, currency')
+    .eq('owner_type', 'customer')
+    .eq('owner_id', customer.id)
+    .eq('is_deleted', false)
     .maybeSingle()
 
   const currentBalance = wallet?.balance || 0
+  const holdBalance = wallet?.hold_balance || 0
+  const availableBalance = currentBalance - holdBalance
 
   return (
     <div className="min-h-screen bg-gray-50 p-4">
@@ -47,8 +51,19 @@ export default async function TopUpWalletPage({
 
         {/* Current Balance Card */}
         <div className="bg-gradient-to-br from-blue-500 to-blue-700 rounded-2xl shadow-lg p-8 mb-6 text-white">
-          <p className="text-sm opacity-90 mb-2">رصيدك الحالي</p>
-          <p className="text-5xl font-bold">{currentBalance.toFixed(2)} <span className="text-2xl">ريال</span></p>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm opacity-90 mb-1">رصيدك الحالي</p>
+              <p className="text-5xl font-bold">{currentBalance.toFixed(2)} <span className="text-2xl">ريال</span></p>
+            </div>
+            {holdBalance > 0 && (
+              <div className="pt-3 border-t border-white/20">
+                <p className="text-xs opacity-80 mb-1">المبلغ المحجوز (في وظائف جارية)</p>
+                <p className="text-xl font-semibold">{holdBalance.toFixed(2)} ريال</p>
+                <p className="text-xs opacity-80 mt-2">المتاح للاستخدام: {availableBalance.toFixed(2)} ريال</p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Success Message */}
