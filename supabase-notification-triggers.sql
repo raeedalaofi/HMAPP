@@ -17,8 +17,8 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
-  INSERT INTO notifications (user_id, type, title, message, link, is_read, created_at)
-  VALUES (p_user_id, p_type, p_title, p_message, p_link, FALSE, NOW());
+  INSERT INTO notifications (recipient_id, type, title, message, data, is_read, created_at)
+  VALUES (p_user_id, p_type, p_title, jsonb_build_object('message', p_message, 'link', p_link), FALSE, NOW());
 END;
 $$;
 
