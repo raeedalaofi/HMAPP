@@ -69,6 +69,11 @@ export async function signupCustomer(formData: FormData) {
   const fullName = formData.get('fullName') as string
   const phone = formData.get('phone') as string
 
+  // تحقق من البيانات المطلوبة
+  if (!email || !password || !fullName || !phone) {
+    return redirect('/signup?error=' + encodeURIComponent('جميع الحقول مطلوبة'))
+  }
+
   // 1. إنشاء مستخدم Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
@@ -76,12 +81,20 @@ export async function signupCustomer(formData: FormData) {
   })
 
   if (authError) {
-    console.error(authError)
-    return redirect('/signup?error=auth_failed')
+    console.error('Signup Auth Error:', authError)
+    const errorMessage = authError.message === 'User already registered'
+      ? 'البريد الإلكتروني مسجل مسبقاً'
+      : authError.message === 'Password should be at least 6 characters'
+      ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'
+      : 'فشل التسجيل: ' + authError.message
+    
+    return redirect('/signup?error=' + encodeURIComponent(errorMessage))
   }
 
   if (authData && authData.user) {
     const user = authData.user
+    console.log('User created:', user.email)
+    
     // 2. إنشاء ملف العميل فوراً في جدول customers
     const { data: created, error: profileError } = await supabase.from('customers').insert({
       user_id: user.id,
@@ -90,22 +103,36 @@ export async function signupCustomer(formData: FormData) {
       is_active: true
     }).select('id').single()
 
-    if (profileError) console.error('Profile Error:', profileError)
+    if (profileError) {
+      console.error('Profile Creation Error:', profileError)
+      return redirect('/signup?error=' + encodeURIComponent('فشل إنشاء ملف العميل'))
+    }
 
-    // 3. إنشاء محفظة فارغة له (محاولة استخدام owner_type/owner_id)
+    console.log('Customer profile created:', created.id)
+
+    // 3. إنشاء محفظة فارغة له
     try {
       const ownerId = created?.id
       if (ownerId) {
-        await supabase.from('wallets').insert({
-          owner_type: 'customer',
-          owner_id: ownerId
+        const { error: walletError } = await supabase.from('wallets').insert({
+          customer_id: ownerId,
+          balance: 0,
+          currency: 'SAR'
         })
+        
+        if (walletError) {
+          console.error('Wallet creation error:', walletError)
+          // لا نوقف العملية، المحفظة يمكن إنشاؤها لاحقاً
+        } else {
+          console.log('Wallet created for customer:', ownerId)
+        }
       }
     } catch (err) {
       console.error('Failed to create wallet during signup:', err)
     }
   }
 
+  console.log('Customer signup completed successfully')
   revalidatePath('/', 'layout')
   redirect('/')
 }

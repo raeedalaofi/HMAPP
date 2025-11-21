@@ -1,12 +1,30 @@
 import { signupCustomer } from '@/app/login/actions'
 import SubmitButton from '@/app/components/SubmitButton'
 
-export default function SignupPage() {
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; success?: string }>
+}) {
+  const params = await searchParams
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md bg-white p-8 rounded-xl shadow-md">
         <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">إنشاء حساب عميل جديد</h1>
         
+        {/* رسائل الخطأ أو النجاح */}
+        {params.error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-center">
+            <span className="block sm:inline">{decodeURIComponent(params.error)}</span>
+          </div>
+        )}
+        {params.success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4 text-center">
+            <span className="block sm:inline">{decodeURIComponent(params.success)}</span>
+          </div>
+        )}
+
         <form action={signupCustomer} className="space-y-4">
           <div>
             <label className="block text-sm text-gray-600 mb-1">الاسم الكامل</label>
