@@ -83,6 +83,8 @@ export async function signup(formData: FormData) {
 
 export async function signupCustomer(formData: FormData) {
   const supabase = await createClient()
+  const { createAdminClient } = await import('@/utils/supabase/server')
+  const adminClient = await createAdminClient()
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
@@ -94,17 +96,15 @@ export async function signupCustomer(formData: FormData) {
     return redirect('/signup?error=' + encodeURIComponent('جميع الحقول مطلوبة'))
   }
 
-  // 1. إنشاء مستخدم Auth with email confirmation
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  // 1. إنشاء مستخدم Auth مع تأكيد تلقائي باستخدام Admin API
+  const { data: authData, error: authError } = await adminClient.auth.admin.createUser({
     email: email.trim(),
     password: password.trim(),
-    options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
-      data: {
-        full_name: fullName,
-        phone: phone,
-        role: 'customer'
-      }
+    email_confirm: true,  // ✅ تأكيد تلقائي
+    user_metadata: {
+      full_name: fullName,
+      phone: phone,
+      role: 'customer'
     }
   })
 
@@ -121,10 +121,10 @@ export async function signupCustomer(formData: FormData) {
 
   if (authData && authData.user) {
     const user = authData.user
-    console.log('User created:', user.email)
+    console.log('✅ User created and confirmed:', user.email)
     
-    // 2. إنشاء ملف العميل فوراً في جدول customers
-    const { data: created, error: profileError } = await supabase.from('customers').insert({
+    // 2. إنشاء ملف العميل فوراً في جدول customers باستخدام admin client
+    const { data: created, error: profileError } = await adminClient.from('customers').insert({
       user_id: user.id,
       full_name: fullName,
       phone: phone,
@@ -142,7 +142,7 @@ export async function signupCustomer(formData: FormData) {
     try {
       const ownerId = created?.id
       if (ownerId) {
-        const { error: walletError } = await supabase.from('wallets').insert({
+        const { error: walletError } = await adminClient.from('wallets').insert({
           owner_type: 'customer',
           owner_id: ownerId,
           balance: 0,
@@ -161,7 +161,6 @@ export async function signupCustomer(formData: FormData) {
     }
   }
 
-  console.log('Customer signup completed successfully')
-  revalidatePath('/', 'layout')
-  redirect('/')
+  console.log('✅ Customer signup completed - user can login immediately')
+  return redirect('/login?message=' + encodeURIComponent('تم إنشاء حسابك بنجاح! يمكنك تسجيل الدخول الآن'))
 }
