@@ -1,4 +1,5 @@
 import { login, signup } from './actions'
+import Link from 'next/link'
 
 export default async function LoginPage({
   searchParams,
@@ -59,6 +60,13 @@ export default async function LoginPage({
                 placeholder="كلمة المرور"
               />
             </div>
+          </div>
+
+          {/* Forgot Password Link */}
+          <div className="text-center">
+            <Link href="/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+              نسيت كلمة المرور؟
+            </Link>
           </div>
 
           <div className="flex flex-col gap-3">

@@ -15,6 +15,18 @@ export default async function Home() {
   }
 
   // 2. Check user role and redirect accordingly
+  // FIRST: Check if user is an admin
+  const { data: adminUser } = await supabase
+    .from('admin_users')
+    .select('role')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (adminUser) {
+    // User is an admin, redirect to admin dashboard
+    redirect('/admin')
+  }
+
   // Check if user is a company owner
   const { data: company } = await supabase
     .from('companies')

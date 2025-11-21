@@ -1,4 +1,5 @@
 import { signupCustomer } from '@/app/login/actions'
+import SubmitButton from '@/app/components/SubmitButton'
 
 export default function SignupPage() {
   return (
@@ -14,7 +15,15 @@ export default function SignupPage() {
 
           <div>
             <label className="block text-sm text-gray-600 mb-1">رقم الجوال</label>
-            <input name="phone" type="tel" required className="w-full p-2 border rounded text-black" placeholder="05xxxxxxxx" />
+            <input 
+              name="phone" 
+              type="tel" 
+              required 
+              pattern="05[0-9]{8}" 
+              title="رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام" 
+              className="w-full p-2 border rounded text-black" 
+              placeholder="05xxxxxxxx" 
+            />
           </div>
 
           <div>
@@ -27,9 +36,7 @@ export default function SignupPage() {
             <input name="password" type="password" required className="w-full p-2 border rounded text-black" />
           </div>
 
-          <button className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">
-            تسجيل حساب
-          </button>
+          <SubmitButton text="تسجيل حساب جديد" loadingText="جاري إنشاء الحساب..." />
         </form>
         
         <p className="mt-4 text-center text-sm text-gray-500">

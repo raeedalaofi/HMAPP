@@ -60,6 +60,11 @@ export default function Footer() {
                   الأسئلة الشائعة
                 </Link>
               </li>
+              <li className="pt-2 border-t border-gray-100">
+                <Link href="/login" className="text-sm text-gray-400 hover:text-gray-600 transition-colors">
+                  دخول الإدارة
+                </Link>
+              </li>
             </ul>
           </div>
 

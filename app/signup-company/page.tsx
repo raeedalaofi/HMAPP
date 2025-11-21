@@ -3,23 +3,10 @@
 import { signupCompanyInitial } from '@/app/actions'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { useFormStatus } from 'react-dom'
+import { Suspense } from 'react'
+import SubmitButton from '@/app/components/SubmitButton'
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {pending ? 'جاري التسجيل...' : '📝 التالي: إكمال البيانات'}
-    </button>
-  )
-}
-
-export default function SignupCompanyPage() {
+function SignupCompanyContent() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
@@ -72,7 +59,7 @@ export default function SignupCompanyPage() {
             </div>
 
             {/* Submit Button */}
-            <SubmitButton />
+            <SubmitButton text="📝 التالي: إكمال البيانات" loadingText="جاري التسجيل..." />
           </form>
 
           {/* Footer Links */}
@@ -90,5 +77,13 @@ export default function SignupCompanyPage() {
         </div>
       </div>
     </main>
+  )
+}
+
+export default function SignupCompanyPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen text-gray-600">جاري التحميل...</div>}>
+      <SignupCompanyContent />
+    </Suspense>
   )
 }

@@ -14,8 +14,8 @@ export default function LocationPicker({
   initialLng,
 }: LocationPickerProps) {
   const mapContainer = useRef<HTMLDivElement>(null)
-  const [lat, setLat] = useState(initialLat || 24.7136)
-  const [lng, setLng] = useState(initialLng || 46.6753)
+  const [lat, setLat] = useState(initialLat && initialLng ? initialLat : 24.7136)
+  const [lng, setLng] = useState(initialLat && initialLng ? initialLng : 46.6753)
 
   // Memoize callback to satisfy exhaustive-deps
   const handleLocationSelect = useCallback(

@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
 import { saveCustomerAddress, updateCustomerProfile } from '@/app/actions'
 import LocationPicker from '@/app/components/LocationPicker'
+import SubmitButton from '@/app/components/SubmitButton'
 import Link from 'next/link'
 
 export default async function ProfilePage({
@@ -104,8 +105,10 @@ export default async function ProfilePage({
                 type="tel"
                 name="phone"
                 defaultValue={customer?.phone || ''}
+                pattern="05[0-9]{8}"
+                title="رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام"
                 className="w-full p-3 border border-gray-300 rounded-lg text-black focus:ring-2 focus:ring-blue-500 outline-none"
-                placeholder="أدخل رقم جوالك"
+                placeholder="05xxxxxxxx"
                 required
               />
             </div>
@@ -123,12 +126,7 @@ export default async function ProfilePage({
             </div>
 
             {/* Save Button */}
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-md"
-            >
-              💾 حفظ التعديلات
-            </button>
+            <SubmitButton text="حفظ التعديلات" loadingText="جاري الحفظ..." />
           </form>
         </div>
 
@@ -183,12 +181,7 @@ export default async function ProfilePage({
             </div>
 
             {/* Submit Button */}
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition shadow-md"
-            >
-              💾 حفظ العنوان
-            </button>
+            <SubmitButton text="حفظ العنوان" loadingText="جاري التحديث..." />
           </form>
         </div>
 
