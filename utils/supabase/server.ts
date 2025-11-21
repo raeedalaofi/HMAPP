@@ -9,10 +9,10 @@ export const createClient = async () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        getAll: async () => {
+        getAll() {
           return cookieStore.getAll()
         },
-        setAll: async (cookiesToSet) => {
+        setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
               cookieStore.set(name, value, options)
@@ -20,7 +20,6 @@ export const createClient = async () => {
           } catch (error) {
             // The `setAll` method was called from a Server Component.
             // This can be ignored if you have middleware handling cookie updates.
-            console.error('Error setting cookies:', error)
           }
         },
       },

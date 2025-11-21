@@ -11,16 +11,30 @@ export async function login(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
+  console.log('🔐 Login attempt for:', email)
+
   // محاولة تسجيل الدخول
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   })
 
   if (error) {
-    console.log('Login Error:', error.message)
-    return redirect('/login?error=Could not authenticate user')
+    console.error('❌ Login Error:', error)
+    // عرض رسالة خطأ أكثر تفصيلاً
+    const errorMessage = error.message === 'Invalid login credentials' 
+      ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة'
+      : error.message === 'Email not confirmed'
+      ? 'يرجى تأكيد بريدك الإلكتروني أولاً'
+      : error.message.includes('Email')
+      ? 'خطأ في البريد الإلكتروني: ' + error.message
+      : 'فشل تسجيل الدخول: ' + error.message
+    
+    return redirect(`/login?error=${encodeURIComponent(errorMessage)}`)
   }
+
+  console.log('✅ Login successful for:', data.user?.email)
+  console.log('🔑 Session:', data.session?.access_token ? 'Created' : 'Missing')
 
   // في حال النجاح، تحديث الكاش والتوجيه للرئيسية
   revalidatePath('/', 'layout')
